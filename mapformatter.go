@@ -61,8 +61,8 @@ func MustFormatTwo(format string, m1, m2 map[string]interface{}) string {
 }
 
 type mapFormatter struct {
-	format string
-	keys   []string
+	fmt  string
+	keys []string
 }
 
 func newMapFormatter(format string) (*mapFormatter, error) {
@@ -84,8 +84,8 @@ func newMapFormatter(format string) (*mapFormatter, error) {
 
 	if t.typ == eofToken {
 		mf := &mapFormatter{
-			format: buf.String(),
-			keys:   make([]string, keys.Len()),
+			fmt:  buf.String(),
+			keys: make([]string, keys.Len()),
 		}
 		for i, k := 0, keys.Front(); k != nil; i, k = i+1, k.Next() {
 			mf.keys[i] = k.Value.(string)
@@ -102,7 +102,7 @@ func (mf *mapFormatter) format(m map[string]interface{}) string {
 	for i, key := range mf.keys {
 		params[i] = m[key]
 	}
-	return fmt.Sprintf(mf.format, params...)
+	return fmt.Sprintf(mf.fmt, params...)
 }
 
 func (mf *mapFormatter) formatTwo(m1, m2 map[string]interface{}) string {
@@ -114,5 +114,5 @@ func (mf *mapFormatter) formatTwo(m1, m2 map[string]interface{}) string {
 			params[i] = m2[key]
 		}
 	}
-	return fmt.Sprintf(mf.format, params...)
+	return fmt.Sprintf(mf.fmt, params...)
 }
