@@ -11,7 +11,7 @@ verb:
 
     %(NAME|GO_VERB)
 
-GO_VERB is the verbs in goland.
+GO_VERB is the verbs in golang.
 
 ##Example
 
