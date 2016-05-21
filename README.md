@@ -1,4 +1,8 @@
 # go-string-mapformatter
+
+[![Build Status](https://travis-ci.org/yangchenxing/go-string-mapformatter.svg?branch=master)](https://travis-ci.org/yangchenxing/go-string-mapformatter)
+[![GoDoc](http://godoc.org/github.com/yangchenxing/go-string-mapformatter?status.svg)](http://godoc.org/github.com/yangchenxing/go-string-mapformatter)
+
 String formatter using maps
 
 ##Usage
