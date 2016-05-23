@@ -21,20 +21,6 @@ func TestMapFormatter(t *testing.T) {
 		t.FailNow()
 	}
 
-	text, err = FormatTwo("test %(a|s) %%%(b|d)", map[string]interface{}{
-		"a": "foo",
-	}, map[string]interface{}{
-		"b": 1,
-	})
-	if err != nil {
-		t.Error("format fail:", err.Error())
-		t.FailNow()
-	}
-	if text != "test foo %1" {
-		t.Error("unexpected format result:", text)
-		t.FailNow()
-	}
-
 	text = MustFormat("Hello %(name|s), you owe me %(money|.2f) dollar.",
 		map[string]interface{}{
 			"name":  "anyone",

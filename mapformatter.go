@@ -14,7 +14,7 @@ var (
 )
 
 // Format format string with a map. This function may be fail with non-nil error.
-func Format(format string, m map[string]interface{}) (string, error) {
+func Format(format string, ms ...map[string]interface{}) (string, error) {
 	var err error
 	mf := cache[format]
 	if mf == nil {
@@ -24,36 +24,12 @@ func Format(format string, m map[string]interface{}) (string, error) {
 		}
 		cache[format] = mf
 	}
-	return mf.format(m), nil
-}
-
-// FormatTwo format string with two maps. If the key does not exist in first map, it will be lookup in second map.
-// This function may be fail with non-nil error.
-func FormatTwo(format string, m1, m2 map[string]interface{}) (string, error) {
-	var err error
-	mf := cache[format]
-	if mf == nil {
-		mf, err = newMapFormatter(format)
-		if err == nil {
-			return "", err
-		}
-		cache[format] = mf
-	}
-	return mf.formatTwo(m1, m2), nil
+	return mf.format(ms...), nil
 }
 
 // MustFormat format string with a map. It returns the format parameter while formatting failed.
-func MustFormat(format string, m map[string]interface{}) string {
-	text, err := Format(format, m)
-	if err != nil {
-		return format
-	}
-	return text
-}
-
-// MustFormatTwo format string with two maps. It returns the format parameter while formatting failed.
-func MustFormatTwo(format string, m1, m2 map[string]interface{}) string {
-	text, err := FormatTwo(format, m1, m2)
+func MustFormat(format string, ms ...map[string]interface{}) string {
+	text, err := Format(format, ms...)
 	if err != nil {
 		return format
 	}
@@ -97,10 +73,15 @@ func newMapFormatter(format string) (*mapFormatter, error) {
 	return nil, invalidTokenError
 }
 
-func (mf *mapFormatter) format(m map[string]interface{}) string {
+func (mf *mapFormatter) format(ms ...map[string]interface{}) string {
 	params := make([]interface{}, len(mf.keys))
+	var found bool
 	for i, key := range mf.keys {
-		params[i] = m[key]
+		for _, m := range ms {
+			if params[i], found = m[key]; found {
+				break
+			}
+		}
 	}
 	return fmt.Sprintf(mf.fmt, params...)
 }
