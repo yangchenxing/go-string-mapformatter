@@ -94,7 +94,7 @@ func (l *lexer) scanKey() token {
 			}
 		}
 		if r == '|' {
-			return l.scanFormat(buf.String())
+			break
 		} else if _, err := buf.WriteRune(r); err != nil {
 			return token{
 				typ: errorToken,
@@ -102,9 +102,7 @@ func (l *lexer) scanKey() token {
 			}
 		}
 	}
-	return token{
-		typ: invalidToken,
-	}
+	return l.scanFormat(buf.String())
 }
 
 func (l *lexer) scanFormat(text string) token {

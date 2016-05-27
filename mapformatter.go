@@ -9,8 +9,8 @@ import (
 )
 
 var (
-	invalidTokenError = errors.New("lexer return invalid token")
-	cache             = make(map[string]*mapFormatter)
+	errInvalidTokenError = errors.New("lexer return invalid token")
+	cache                = make(map[string]*mapFormatter)
 )
 
 // Format format string with a map. This function may be fail with non-nil error.
@@ -70,7 +70,7 @@ func newMapFormatter(format string) (*mapFormatter, error) {
 	} else if t.typ == errorToken {
 		return nil, t.err
 	}
-	return nil, invalidTokenError
+	return nil, errInvalidTokenError
 }
 
 func (mf *mapFormatter) format(ms ...map[string]interface{}) string {
