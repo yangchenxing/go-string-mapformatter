@@ -85,15 +85,3 @@ func (mf *mapFormatter) format(ms ...map[string]interface{}) string {
 	}
 	return fmt.Sprintf(mf.fmt, params...)
 }
-
-func (mf *mapFormatter) formatTwo(m1, m2 map[string]interface{}) string {
-	params := make([]interface{}, len(mf.keys))
-	for i, key := range mf.keys {
-		if v, found := m1[key]; found {
-			params[i] = v
-		} else {
-			params[i] = m2[key]
-		}
-	}
-	return fmt.Sprintf(mf.fmt, params...)
-}
