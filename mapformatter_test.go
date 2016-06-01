@@ -14,11 +14,11 @@ func TestMapFormatter(t *testing.T) {
 	})
 	if err != nil {
 		t.Error("format fail:", err.Error())
-		t.FailNow()
+		return
 	}
 	if text != "test foo %1" {
 		t.Error("unexpected format result:", text)
-		t.FailNow()
+		return
 	}
 
 	text = MustFormat("Hello %(name|s), you owe me %(money|.2f) dollar.",
@@ -28,6 +28,20 @@ func TestMapFormatter(t *testing.T) {
 		})
 	if text != "Hello anyone, you owe me 10.30 dollar." {
 		t.Error("unexpected format result:", text)
-		t.FailNow()
+		return
+	}
+
+	// test bad format
+	if text = MustFormat("%"); text != "%!(NOVERB)" {
+		t.Error("unexpected format result:", text)
+		return
+	}
+	if text = MustFormat("%(TEST"); text != "%!((MISSING)TEST" {
+		t.Error("unexpected format result:", text)
+		return
+	}
+	if text = MustFormat("%(TEST|"); text != "%!((MISSING)TEST|" {
+		t.Error("unexpected format result:", text)
+		return
 	}
 }
