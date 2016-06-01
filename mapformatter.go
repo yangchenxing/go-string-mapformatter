@@ -14,26 +14,13 @@ var (
 )
 
 // Format format string with a map. This function may be fail with non-nil error.
-func Format(format string, ms ...map[string]interface{}) (string, error) {
-	var err error
+func Format(format string, ms ...map[string]interface{}) string {
 	mf := cache[format]
 	if mf == nil {
-		mf, err = newMapFormatter(format)
-		if err != nil {
-			return "", err
-		}
+		mf, _ = newMapFormatter(format)
 		cache[format] = mf
 	}
-	return mf.format(ms...), nil
-}
-
-// MustFormat format string with a map. It returns the format parameter while formatting failed.
-func MustFormat(format string, ms ...map[string]interface{}) string {
-	text, err := Format(format, ms...)
-	if err != nil {
-		return format
-	}
-	return text
+	return mf.format(ms...)
 }
 
 type mapFormatter struct {
@@ -41,7 +28,14 @@ type mapFormatter struct {
 	keys []string
 }
 
-func newMapFormatter(format string) (*mapFormatter, error) {
+func newMapFormatter(format string) (mf *mapFormatter, err error) {
+	defer func() {
+		if e := recover(); e != nil {
+			if e, ok := e.(error); ok {
+				err = e
+			}
+		}
+	}()
 	var buf bytes.Buffer
 	keys := list.New()
 	l := &lexer{
@@ -59,21 +53,21 @@ func newMapFormatter(format string) (*mapFormatter, error) {
 	}
 
 	if t.typ == eofToken {
-		mf := &mapFormatter{
+		mf = &mapFormatter{
 			fmt:  buf.String(),
 			keys: make([]string, keys.Len()),
 		}
 		for i, k := 0, keys.Front(); k != nil; i, k = i+1, k.Next() {
 			mf.keys[i] = k.Value.(string)
 		}
-		return mf, nil
-	} else if t.typ == errorToken {
-		return nil, t.err
 	}
-	return nil, errInvalidTokenError
+	return
 }
 
 func (mf *mapFormatter) format(ms ...map[string]interface{}) string {
+	if mf == nil {
+		return "!(INVALID_FORMATTER)"
+	}
 	params := make([]interface{}, len(mf.keys))
 	var found bool
 	for i, key := range mf.keys {

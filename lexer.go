@@ -3,6 +3,7 @@ package mapformatter
 import (
 	"bufio"
 	"bytes"
+	"fmt"
 	"io"
 )
 
@@ -10,7 +11,6 @@ type tokenType int
 
 const (
 	invalidToken tokenType = iota
-	errorToken
 	eofToken
 	literalToken
 	verbToken
@@ -27,41 +27,34 @@ type lexer struct {
 	*bufio.Reader
 }
 
+func (l *lexer) readRune() (r rune, err error) {
+	r, _, err = l.ReadRune()
+	if err != nil && err != io.EOF {
+		panic(err)
+	}
+	return
+}
+
 func (l *lexer) next() token {
-	r, _, err := l.ReadRune()
+	r, err := l.readRune()
 	if err == io.EOF {
 		return token{
 			typ: eofToken,
-		}
-	} else if err != nil {
-		return token{
-			typ: errorToken,
-			err: err,
 		}
 	}
 	if r == '%' {
 		return l.scanField()
 	}
-	if err := l.UnreadRune(); err != nil {
-		return token{
-			typ: errorToken,
-			err: err,
-		}
-	}
+	l.UnreadRune()
 	return l.scanLiteral()
 }
 
 func (l *lexer) scanField() token {
-	r, _, err := l.ReadRune()
+	r, err := l.readRune()
 	if err == io.EOF {
 		return token{
 			typ:  literalToken,
 			text: "%",
-		}
-	} else if err != nil {
-		return token{
-			typ: errorToken,
-			err: err,
 		}
 	}
 	if r == '%' {
@@ -74,33 +67,24 @@ func (l *lexer) scanField() token {
 	}
 	return token{
 		typ:  literalToken,
-		text: "%",
+		text: fmt.Sprintf("%%%c", r),
 	}
 }
 
 func (l *lexer) scanKey() token {
 	var buf bytes.Buffer
 	for {
-		r, _, err := l.ReadRune()
+		r, err := l.readRune()
 		if err == io.EOF {
 			return token{
 				typ:  literalToken,
 				text: "%(" + buf.String(),
 			}
-		} else if err != nil {
-			return token{
-				typ: errorToken,
-				err: err,
-			}
 		}
 		if r == '|' {
 			break
-		} else if _, err := buf.WriteRune(r); err != nil {
-			return token{
-				typ: errorToken,
-				err: err,
-			}
 		}
+		buf.WriteRune(r)
 	}
 	return l.scanFormat(buf.String())
 }
@@ -108,27 +92,17 @@ func (l *lexer) scanKey() token {
 func (l *lexer) scanFormat(text string) token {
 	var buf bytes.Buffer
 	for {
-		r, _, err := l.ReadRune()
+		r, err := l.readRune()
 		if err == io.EOF {
 			return token{
 				typ:  literalToken,
 				text: "%(" + text + "|" + buf.String(),
 			}
-		} else if err != nil {
-			return token{
-				typ: errorToken,
-				err: err,
-			}
 		}
 		if r == ')' {
 			break
 		}
-		if _, err := buf.WriteRune(r); err != nil {
-			return token{
-				typ: errorToken,
-				err: err,
-			}
-		}
+		buf.WriteRune(r)
 	}
 	return token{
 		typ:    verbToken,
@@ -140,32 +114,18 @@ func (l *lexer) scanFormat(text string) token {
 func (l *lexer) scanLiteral() token {
 	var buf bytes.Buffer
 	for {
-		r, _, err := l.ReadRune()
+		r, err := l.readRune()
 		if err == io.EOF {
 			return token{
 				typ:  literalToken,
 				text: buf.String(),
 			}
-		} else if err != nil {
-			return token{
-				typ: errorToken,
-				err: err,
-			}
 		}
 		if r == '%' {
-			if err := l.UnreadRune(); err != nil {
-				return token{
-					typ: errorToken,
-					err: err,
-				}
-			}
+			l.UnreadRune()
 			break
-		} else if _, err := buf.WriteRune(r); err != nil {
-			return token{
-				typ: errorToken,
-				err: err,
-			}
 		}
+		buf.WriteRune(r)
 	}
 	return token{
 		typ:  literalToken,
