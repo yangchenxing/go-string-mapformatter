@@ -29,8 +29,9 @@ type lexer struct {
 
 func (l *lexer) readRune() (r rune, err error) {
 	r, _, err = l.ReadRune()
-	if err != nil && err != io.EOF {
-		panic(err)
+	// buffer always read success
+	if err != nil {
+		err = io.EOF
 	}
 	return
 }

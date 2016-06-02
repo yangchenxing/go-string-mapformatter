@@ -29,13 +29,6 @@ type mapFormatter struct {
 }
 
 func newMapFormatter(format string) (mf *mapFormatter, err error) {
-	defer func() {
-		if e := recover(); e != nil {
-			if e, ok := e.(error); ok {
-				err = e
-			}
-		}
-	}()
 	var buf bytes.Buffer
 	keys := list.New()
 	l := &lexer{
